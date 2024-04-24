@@ -69,7 +69,10 @@ local instructions = {}
 local line = io.read("*L")
 while line do
   line = line:gsub("^%s*(.-)%s*$", "%1")
-  table.insert(instructions, line)
+  -- Пропускаем пустые строки и комментации
+  if not (line == "" or line:find("#", 1, true) == 1) then
+    table.insert(instructions, line)    
+  end
   line = io.read("*L")
 end
 
@@ -111,7 +114,7 @@ end
 -- end
 
 -- Функция для рекурсивного поиска кратчайшего пути от источника до цели
-function dijkstra(graph, source, target)
+function dijkstra(graph, source)
   -- Инициализация расстояний и посещенных узлов
   local distances = {}
   local visited = {}
@@ -148,76 +151,82 @@ function dijkstra(graph, source, target)
       end
   end
 
-  -- Восстанавливаем путь
-  local path = {}
-  local current = {name = target}
-  while current.name ~= source do
-      path[#path+1] = current
-      current = {name = paths[current.name]}
-  end
+  local shortest_paths = {}
+  for target, _ in pairs(graph) do
+    -- Восстанавливаем путь
+    local path = {}
+    local current = {name = target}
+    while current.name ~= source do
+        path[#path+1] = current
+        current = {name = paths[current.name]}
+    end
 
-  local prev = source
-  for i = #path, 1, -1 do
-    path[i].conn = graph[prev][path[i].name]
-    path[i].sex = persons[path[i].name]
-    prev = path[i].name
-  end
+    local prev = source
+    for i = #path, 1, -1 do
+      path[i].conn = graph[prev][path[i].name]
+      path[i].sex = persons[path[i].name]
+      prev = path[i].name
+    end
 
-  local result = {}
-  for _, item in pairs(path) do
-    table.insert(result, 1, item)
+    local result = {}
+    for _, item in pairs(path) do
+      table.insert(result, 1, item)
+    end
+    shortest_paths[target] = result
   end
-
-  -- Проверяем, достигнут ли целевой узел
-  return #result > 0 and result or nil, distances
+  
+  return shortest_paths
 end
 
-
+function path2role(path)
+  local role = 'Неизвестно'
+  if #path == 1 and path[1].conn == '->' and path[1].sex == 'Ж' then
+    role = 'Дочь'
+  elseif #path == 1 and path[1].conn == '->' and path[1].sex == 'М' then
+    role = 'Сын'
+  elseif #path > 1 and table.all(path, function (item) return item.conn == '->' end) then
+    -- Xвнук/внучка
+    local sex = path[#path].sex
+    local pra_n = #path - 2
+    if pra_n == 0 then
+      if sex == 'М' then
+        role = 'Внук'
+      else
+        role = 'Внучка'
+      end
+    else
+      local infix = string.rep('пра', pra_n - 1)
+      if sex == 'М' then
+        role = 'Пра' .. infix .. 'внук'
+      else
+        role = 'Пра' .. infix .. 'внучка'
+      end
+    end
+  elseif #path == 1 and path[1].conn == '<->' and path[1].sex == 'Ж' then
+    role = 'Жена'
+  elseif #path == 1 and path[1].conn == '<->' and path[1].sex == 'М' then
+    role = 'Муж'
+  elseif #path == 1 and path[1].conn == '<-' and path[1].sex == 'Ж' then
+    role = 'Мать'
+  elseif #path == 1 and path[1].conn == '<-' and path[1].sex == 'М' then
+    role = 'Отец'
+  end
+  return role
+end
 
 -- local from = "Парфений"
 -- local to = "Архипп"
-local from, to = ...
+local from = ...
 
-print('Search path from ' .. from .. ' to ' .. to)
-local path, distances = dijkstra(graph, from, to)
--- print(serializeTable(path))
-local path_verbose = from .. ' (' .. persons[from] .. ')'
-for _, item in pairs(path) do
-  path_verbose = path_verbose .. ' ' .. item.conn .. ' ' .. item.name .. ' (' .. item.sex .. ')' 
-end
-print(path_verbose)
-
--- Определение родства
-local role = 'Неизвестно'
-if #path == 1 and path[1].conn == '->' and path[1].sex == 'Ж' then
-  role = 'Дочь'
-elseif #path == 1 and path[1].conn == '->' and path[1].sex == 'М' then
-  role = 'Сын'
-elseif #path > 1 and table.all(path, function (item) return item.conn == '->' end) then
-  -- Xвнук/внучка
-  local sex = path[#path].sex
-  local pra_n = #path - 2
-  if pra_n == 0 then
-    if sex == 'М' then
-      role = 'Внук'
-    else
-      role = 'Внучка'
-    end
-  else
-    local infix = string.rep('пра', pra_n - 1)
-    if sex == 'М' then
-      role = 'Пра' .. infix .. 'внук'
-    else
-      role = 'Пра' .. infix .. 'внучка'
-    end
+print('Search path from ' .. from)
+local paths = dijkstra(graph, from)
+for person, path in pairs(paths) do
+  local path_verbose = from .. ' (' .. persons[from] .. ')'
+  for _, item in pairs(path) do
+    path_verbose = path_verbose .. ' ' .. item.conn .. ' ' .. item.name .. ' (' .. item.sex .. ')' 
   end
-elseif #path == 1 and path[1].conn == '<->' and path[1].sex == 'Ж' then
-  role = 'Жена'
-elseif #path == 1 and path[1].conn == '<->' and path[1].sex == 'М' then
-  role = 'Муж'
-elseif #path == 1 and path[1].conn == '<-' and path[1].sex == 'Ж' then
-  role = 'Мать'
-elseif #path == 1 and path[1].conn == '<-' and path[1].sex == 'М' then
-  role = 'Отец'
+
+  -- Определение родства
+  local role = path2role(path)
+  print(string.format("%s (%s)\t\t%s", person, role, path_verbose))
 end
-print(role)
