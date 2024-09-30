@@ -26,8 +26,8 @@ type DurlandNation interface {
 }
 
 type DurlandPlayer struct {
-	Race   DurlandRace
-	Nation DurlandNation
+	race   DurlandRace
+	nation DurlandNation
 
 	Health       float32
 	Money        float32
@@ -88,7 +88,7 @@ const (
 
 func (state *DurlandState) tick(strategy DurlandStrategy) DurlandTickResult {
 	move := strategy.DecideMove(state)
-	if move != nil {
+	if move != nil && move.Biome != state.CurrentBiome {
 		state.CurrentBiome = move.Biome
 		state.BiomesHistory = append(state.BiomesHistory, move.Biome)
 		state.CurrentBiomeTicks = 0
@@ -114,7 +114,7 @@ func (state *DurlandState) checkResult() DurlandTickResult {
 }
 
 func (state *DurlandState) onAction(action *DurlandStrategyAction) {
-	state.Player.Nation.onAction(state, action)
+	state.Player.nation.onAction(state, action)
 	state.CurrentBiome.Type.onAction(state, action)
 }
 
@@ -301,7 +301,9 @@ func (biome DurlandBiomeKuramarubs) Name() string {
 	return "Курамарибы"
 }
 func (biome DurlandBiomeKuramarubs) onAction(state *DurlandState, action *DurlandStrategyAction) {
-	// TODO
+	if state.CurrentBiomeTicks >= 2 {
+
+	}
 }
 
 type DurlandBiomePuntaPelicana struct{}
@@ -310,7 +312,12 @@ func (biome DurlandBiomePuntaPelicana) Name() string {
 	return "Пунта-пеликана"
 }
 func (biome DurlandBiomePuntaPelicana) onAction(state *DurlandState, action *DurlandStrategyAction) {
-	// TODO
+	if state.CurrentBiomeTicks >= 2 {
+		action.SatisfactionChange *= 1.23
+		if rand.Float32() < 0.2 {
+			action.MoneyChange -= state.Player.Money * 0.5
+		}
+	}
 }
 
 // Праналенд
@@ -331,7 +338,7 @@ func (biome BiomePuntaHareKirishi) Name() string {
 	return "Харе-Кириши"
 }
 func (biome BiomePuntaHareKirishi) onAction(state *DurlandState, action *DurlandStrategyAction) {
-	if state.Player.Nation.Name() == "Дроценты" {
+	if state.Player.nation.Name() == "Дроценты" {
 		action.HealthChange -= state.Player.Health * 0.1
 	}
 }
@@ -415,8 +422,8 @@ func BuildDurlandState() DurlandState {
 		},
 	}
 	player := DurlandPlayer{
-		Race:   DurlandRaceShlendrics{},
-		Nation: DurlandNationMozhors{},
+		race:   DurlandRaceShlendrics{},
+		nation: DurlandNationMozhors{},
 
 		Health:       10,
 		Money:        10,
