@@ -1,0 +1,17 @@
+[package]
+name = "cats_mosaic"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+base64ct = { version = "1.6.0", features = ["alloc"] }
+clap = { version = "4.5.20", features = ["derive"] }
+image = "0.25.4"
+indexmap = "2.6.0"
+rand = "0.8.5"
+reqwest = { version = "0.12", features = ["json", "blocking", "multipart"] }
+sha-1 = "0.10.1"
+url = { version = "2.5.2", features = ["serde"] }
+zip = "2.2.0"
