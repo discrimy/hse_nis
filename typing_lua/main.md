@@ -335,6 +335,35 @@ end
 </div>
 
 ---
+# Problems
+- Lua is dynamic language and relies on it in runtime
+- Some libraries hard or impossible type checked (ex. `coroutines`)
+- Requires compilation
+
+---
+# Problems
+```lua
+local is_even: (number) -> (boolean)
+local is_odd: (number) -> (boolean)
+function is_even (n: integer):boolean
+    if (n == 0) then
+        return true
+    else
+        return is_odd(n - 1)
+    end
+end
+function is_odd (n: integer):boolean
+    if (n == 0) then
+        return false
+    else
+        return is_even(n - 1)
+    end
+end
+print(is_even(8))
+print(is_odd(8))
+```
+
+---
 # Alternatives
 ## [Luau](https://luau.org)
 - created and backed by Roblox Inc.
