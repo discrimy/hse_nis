@@ -233,7 +233,7 @@ end
 local function get_x_nominal(n: Nominal2): boolean
     return n.x
 end
-print(get_x_nominal(Nominal.new(false))) -- not ok
+print(get_x_nominal(Nominal1.new(false))) -- not ok
 ```
 
 ```lua
@@ -266,79 +266,13 @@ print(stack.pop())
 ```
 
 ---
-# Alternatives
-
-<div class="columns">
-<div>
-
-## [Teal](https://github.com/teal-language/tl)
-- superset of Lua too
-- supports Lua>=5.4
-- active (last changes in `master` - 16/11/2024)
-- better docs (than typedlua)
-- adds more types of types
-
-```lua
--- an enum: a set of accepted strings
-local enum State
-   "open"
-   "closed"
-end
-```
-
-</div>
-<div>
-
-```lua
--- a record: a table with a known set of fields
-local record Point
-   x: number
-   y: number
-end
--- an interface: an abstract record type
-local interface Character
-   sprite: Image
-   position: Point
-   kind: string
-end
--- records can implement interfaces, 
--- using a type-identifying `where` clause
-local record Spaceship
-   is Character
-   where self.kind == "spaceship"
-
-   weapon: Weapons
-end
--- a record can also declare an array interface, 
--- making it double as a record and an array
-local record TreeNode<T>
-   is {TreeNode<T>}
-
-   item: T
-end
-local root: TreeNode<number> = {
-    item = 1,
-    {item = 2},
-    {item = 3, {item = 4}}
-}
-print(root[2][1].item)
-
-
-local record File
-   is userdata
-
-   status: function(): State
-   close: function(File): boolean, string
-end
-```
-
-</div>
-
----
 # Problems
 - Lua is dynamic language and relies on it in runtime
 - Some libraries hard or impossible type checked (ex. `coroutines`)
 - Requires compilation
+
+---
+![](./lua_stdlib_typing.png)
 
 ---
 # Problems
@@ -363,8 +297,72 @@ print(is_even(8))
 print(is_odd(8))
 ```
 
+
 ---
 # Alternatives
+## [Teal](https://github.com/teal-language/tl)
+- superset of Lua too
+- supports Lua>=5.4
+- active (last changes in `master` - 16/11/2024)
+- better docs (than typedlua)
+- adds more types of types
+
+---
+## [Teal](https://github.com/teal-language/tl)
+```lua
+-- an enum: a set of accepted strings
+local enum State
+   "open"
+   "closed"
+end
+-- a record: a table with a known set of fields
+local record Point
+   x: number
+   y: number
+end
+-- an interface: an abstract record type
+local interface Character
+   sprite: Image
+   position: Point
+   kind: string
+end
+-- records can implement interfaces, 
+-- using a type-identifying `where` clause
+local record Spaceship
+   is Character
+   where self.kind == "spaceship"
+
+   weapon: Weapons
+end
+```
+
+---
+## [Teal](https://github.com/teal-language/tl)
+```lua
+-- a record can also declare an array interface, 
+-- making it double as a record and an array
+local record TreeNode<T>
+   is {TreeNode<T>}
+
+   item: T
+end
+local root: TreeNode<number> = {
+    item = 1,
+    {item = 2},
+    {item = 3, {item = 4}}
+}
+print(root[2][1].item)
+
+local record File
+   is userdata
+
+   status: function(): State
+   close: function(File): boolean, string
+end
+```
+
+
+---
 ## [Luau](https://luau.org)
 - created and backed by Roblox Inc.
 - superset of Lua 5.1 but not compatible with latest Lua
